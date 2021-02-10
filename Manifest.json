@@ -1,0 +1,29 @@
+{
+  "name": "TemperatureSensor",
+  "schemas": {
+    "weatherPublisher" :{
+      "socketType" : "publisher",
+      "send" : {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type": "object",
+        "properties" : {
+          "temperature" : "number",
+          "humidity" : "number"
+        },
+        "required" : ["temperature"]
+      }
+    },
+    "boardStats" : {
+      "socketType" : "reply",
+      "send" : {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type": "object",
+        "properties" : {
+          "memUsage" : "number",
+          "boardName" : "string"
+        },
+        "required" : ["memUsage", "boardName"]
+      }
+    }
+  }
+}
