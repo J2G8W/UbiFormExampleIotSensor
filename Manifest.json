@@ -19,10 +19,17 @@
         "$schema": "http://json-schema.org/draft-04/schema#",
         "type": "object",
         "properties" : {
-          "memUsage" : "number",
-          "boardName" : "string"
+          "freeRAM" : "number",
+          "boardName" : "string",
+          "error" : "boolean"
         },
-        "required" : ["memUsage", "boardName"]
+        "required" : ["memUsage", "boardName", "error"]
+      },
+      "receive" : {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type": "object",
+        "properties" : {},
+        "required" : []
       }
     }
   }

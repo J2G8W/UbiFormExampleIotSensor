@@ -25,7 +25,6 @@ void temperaturePublisherCallback(Endpoint* endpoint, void* userData){
         temperature += tempChangeDistribution(generator);
         humidity += humidityChangeDistribution(generator);
         try{
-
             sm.addMember("temperature",temperature);
             sm.addMember("humidity",humidity);
             publisherEndpoint->sendMessage(sm);
@@ -37,7 +36,46 @@ void temperaturePublisherCallback(Endpoint* endpoint, void* userData){
     }
 }
 
-int main() {
+void systemStatusReply(Endpoint* endpoint, void* userData){
+    auto* component = static_cast<Component*>(userData);
+
+    DataSenderEndpoint* senderEndpoint = component->castToDataSenderEndpoint(endpoint);
+    DataReceiverEndpoint* receiverEndpoint = component->castToDataReceiverEndpoint(endpoint);
+
+    while(true){
+        bool error;
+        try{
+            auto msg = receiverEndpoint->receiveMessage();
+            error = false;
+        }catch (ValidationError &e){
+            std::cerr << "Received erroneous request" << std::endl;
+            error = true;
+        } catch (NngError &e){
+            std::cerr << "Endpoint stopped: " << e.what() << std::endl;
+            break;
+        }
+        struct sysinfo memInfo{};
+        sysinfo (&memInfo);
+        long long totalRAM = memInfo.totalram;
+        long long freeRAM = memInfo.freeram;
+        long long ramPercent = (100*freeRAM)/totalRAM;
+
+        SocketMessage sm;
+        sm.addMember("freeRAM", (int) ramPercent);
+        sm.addMember("error", error);
+        sm.addMember("boardName", "JULIAN's board");
+
+        try {
+            senderEndpoint->asyncSendMessage(sm);
+        } catch (NngError &e){
+            std::cerr << "Serious error: " << e.what() << std::endl;
+            break;
+        }
+    }
+}
+
+
+int main(int argc, char **argv) {
     Component component;
     FILE* fp = fopen("Manifest.json", "r");
     if(fp == nullptr){
@@ -48,20 +86,24 @@ int main() {
     fclose(fp);
 
     component.registerStartupFunction("weatherPublisher",temperaturePublisherCallback, &component);
+    component.registerStartupFunction("boardStats", systemStatusReply, &component);
 
+    component.startBackgroundListen();
 
-    struct sysinfo memInfo{};
+    if (argc >= 2){
+        component.getResourceDiscoveryConnectionEndpoint().registerWithHub(argv[1]);
+    }
+    if(component.getResourceDiscoveryConnectionEndpoint().getResourceDiscoveryHubs().empty()){
+        std::cout << "Searching for hubs" << std::endl;
+        component.getResourceDiscoveryConnectionEndpoint().searchForResourceDiscoveryHubs();
+    }
 
-    sysinfo (&memInfo);
-
-    long long totalRAM = memInfo.totalram;
-    long long freeRAM = memInfo.freeram;
-
-    long long ramPercent = (100*freeRAM)/totalRAM;
-    totalRAM *= memInfo.mem_unit;
-    totalRAM /= 1024;
-
-    std::cout << "Total RAM in machine: " << totalRAM << "kb" << std::endl;
-    std::cout << "Free RAM: " << ramPercent << "%" << std::endl;
-
+    while(true){
+        std::string userInput;
+        std::cin >> userInput;
+        if(userInput == "end"){
+            break;
+        }
+    }
+    component.getResourceDiscoveryConnectionEndpoint().deRegisterFromAllHubs();
 }
