@@ -2,26 +2,26 @@
   "name": "TemperatureSensor",
   "schemas": {
     "weatherPublisher" :{
-      "socketType" : "publisher",
+      "connectionParadigm" : "publisher",
       "send" : {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "type": "object",
         "properties" : {
-          "temperature" : "number",
-          "humidity" : "number"
+          "temperature" : {"type":"number"},
+          "humidity" : {"type":"number"}
         },
         "required" : ["temperature"]
       }
     },
     "boardStats" : {
-      "socketType" : "reply",
+      "connectionParadigm" : "reply",
       "send" : {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "type": "object",
         "properties" : {
-          "freeRAM" : "number",
-          "boardName" : "string",
-          "error" : "boolean"
+          "freeRAM" : {"type":"number"},
+          "boardName" : {"type":"string"},
+          "error" : {"type":"boolean"}
         },
         "required" : ["memUsage", "boardName", "error"]
       },
