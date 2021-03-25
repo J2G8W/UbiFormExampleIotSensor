@@ -3,8 +3,10 @@
 
 #include <chrono>
 #include <thread>
+#ifdef  __linux__
 #include "sys/types.h"
 #include "sys/sysinfo.h"
+#endif
 
 
 
@@ -20,14 +22,14 @@ void temperaturePublisherCallback(Endpoint* endpoint, void* userData){
     std::uniform_int_distribution<int> tempChangeDistribution(-1,1);
     std::uniform_int_distribution<int> humidityChangeDistribution(-3,3);
 
-    SocketMessage sm;
+    EndpointMessage endpointMessage;
     while(true){
         temperature += tempChangeDistribution(generator);
         humidity += humidityChangeDistribution(generator);
         try{
-            sm.addMember("temperature",temperature);
-            sm.addMember("humidity",humidity);
-            publisherEndpoint->sendMessage(sm);
+            endpointMessage.addMember("temperature", temperature);
+            endpointMessage.addMember("humidity", humidity);
+            publisherEndpoint->sendMessage(endpointMessage);
         } catch (std::logic_error &e) {
             std::cerr << "Endpoint stopped: " << e.what() << std::endl;
             break;
@@ -54,19 +56,24 @@ void systemStatusReply(Endpoint* endpoint, void* userData){
             std::cerr << "Endpoint stopped: " << e.what() << std::endl;
             break;
         }
+#ifdef __linux__
         struct sysinfo memInfo{};
         sysinfo (&memInfo);
         long long totalRAM = memInfo.totalram;
         long long freeRAM = memInfo.freeram;
         long long ramPercent = (100*freeRAM)/totalRAM;
 
-        SocketMessage sm;
+        EndpointMessage endpointMessage;
         sm.addMember("freeRAM", (int) ramPercent);
         sm.addMember("error", error);
         sm.addMember("boardName", "JULIAN's board");
-
+#else
+        EndpointMessage endpointMessage;
+        endpointMessage.addMember("error",true);
+        endpointMessage.addMember("errorMsg", "Wrong platform for requesting");
+#endif
         try {
-            senderEndpoint->asyncSendMessage(sm);
+            senderEndpoint->asyncSendMessage(endpointMessage);
         } catch (NngError &e){
             std::cerr << "Serious error: " << e.what() << std::endl;
             break;
