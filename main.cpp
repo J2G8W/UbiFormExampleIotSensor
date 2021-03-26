@@ -64,9 +64,9 @@ void systemStatusReply(Endpoint* endpoint, void* userData){
         long long ramPercent = (100*freeRAM)/totalRAM;
 
         EndpointMessage endpointMessage;
-        sm.addMember("freeRAM", (int) ramPercent);
-        sm.addMember("error", error);
-        sm.addMember("boardName", "JULIAN's board");
+        endpointMessage.addMember("freeRAM", (int) ramPercent);
+        endpointMessage.addMember("error", error);
+        endpointMessage.addMember("boardName", "JULIAN's board");
 #else
         EndpointMessage endpointMessage;
         endpointMessage.addMember("error",true);
