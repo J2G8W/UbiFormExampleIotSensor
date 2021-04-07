@@ -4,9 +4,7 @@ project(UbiFormExampleIotSensor)
 set(CMAKE_CXX_STANDARD 14)
 
 
-ADD_DEFINITIONS(-DRAPIDJSON_HAS_STDSTRING)
-include_directories(libs/UbiForm/include libs/UbiForm/libs/rapidjson/include
-        libs/UbiForm/CMake/nng-master/include)
+include_directories(libs/UbiForm/include)
 add_subdirectory(libs/UbiForm/CMake build)
 
 add_executable(UbiFormExampleIotSensor main.cpp)
